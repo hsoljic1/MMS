@@ -5,11 +5,10 @@ import Menu from './components/Menu'
 
 export default class App extends React.Component {
 
-  constructor(props) {
-    super(props);
-    this.state = { 
-      width: 0, 
-      height: 0,
+  getInitialState = () => {
+    return { 
+      width: window.innerWidth, 
+      height: window.innerHeight,
       points: [
         {x: 0, y: 8},
         {x: 1, y: 5},
@@ -22,8 +21,16 @@ export default class App extends React.Component {
         {x: 8, y: 2},
         {x: 9, y: 0}
       ],
-      centerPoints: []
+      centerPoints: [],
+      running: false,
+      newCenterPoints: [],
+      clusters: []
     };
+  }
+
+  constructor(props) {
+    super(props);
+    this.state = this.getInitialState()
   }
 
   addPoint = (x, y) => {
@@ -34,7 +41,6 @@ export default class App extends React.Component {
       this.setState({
         points
       })
-      console.log(points)
     }
   }
 
@@ -54,7 +60,6 @@ export default class App extends React.Component {
       this.setState({
         centerPoints: points
       })
-      console.log(points)
     }
   }
 
@@ -66,12 +71,88 @@ export default class App extends React.Component {
     }
   }
 
+  run = () => {
+    this.setState({
+      running: !this.state.running
+    })
+  }
+
+  step = () => {
+    
+    const points = this.state.points
+    const centerPoints = this.state.centerPoints
+    if(centerPoints.length == 0) {
+      return {
+        newCenterPoints: [],
+        clusters: []
+      }
+    }
+    this.setState({
+      running: true
+    })
+    let clusters = []
+    for(let i = 0; i < centerPoints.length; i++) {
+      clusters.push([])
+    }
+    console.log("C", clusters)
+    for(let i = 0; i < points.length; i++) {
+      let myCluster = 0
+      for(let c = 0; c < centerPoints.length; c++) {
+        if(Math.hypot(points[i].x - centerPoints[c].x, points[i].y - centerPoints[c].y) < 
+           Math.hypot(points[i].x - centerPoints[myCluster].x, points[i].y - centerPoints[myCluster].y)) {
+            myCluster = c
+        }
+      }
+      clusters[myCluster].push(points[i])
+    }
+    let newCenterPoints = []
+    for(let i = 0; i < centerPoints.length; i++) {
+      newCenterPoints.push({
+        x: centerPoints[i].x,
+        y: centerPoints[i].y
+      })
+    }
+    for(let c = 0; c < clusters.length; c++) {
+      let x = 0, y = 0
+      for(let i = 0; i < clusters[c].length; i++) {
+        x += clusters[c][i].x
+        y += clusters[c][i].y
+      }
+      if(clusters[c].length > 0) {
+        newCenterPoints[c] = {
+          x: x / clusters[c].length,
+          y: y / clusters[c].length
+        }
+      }
+    }
+    this.setState({
+      newCenterPoints: []
+    })
+    console.log(newCenterPoints)
+    console.log(clusters)
+    this.setState({
+      newCenterPoints,
+      clusters,
+      centerPoints: newCenterPoints
+    })
+    /*
+    return {
+      newCenterPoints,
+      clusters,
+      centerPoints: newCenterPoints
+    }
+    */
+  }
+
+  reset = () => {
+    this.setState(this.getInitialState());
+  }
+
   render() {
     const { height, width } = this.state    
     const sidebarWidth = 350
     const padding = 40
     const p2 = padding / 2
-    console.log(this.state.centerPoints)
     return (
       <div className="App" style={{ width: "100%", overflow: "hidden" }}>
         <div>
@@ -82,6 +163,9 @@ export default class App extends React.Component {
               data={this.state.points} 
               centerPoints={this.state.centerPoints}
               sidebarWidth={sidebarWidth}
+              running={this.state.running}
+              newCenterPoints={this.state.newCenterPoints}
+              clusters={this.state.clusters}
             />
           </div>
           <div style={{ marginLeft: width - sidebarWidth + padding, height }}>
@@ -90,6 +174,8 @@ export default class App extends React.Component {
               removePoint={this.removePoint}
               addCenterPoint={this.addCenterPoint}
               removeCenterPoint={this.removeCenterPoint}
+              step={this.step}
+              reset={this.reset}
             />
           </div>
         </div>
@@ -110,3 +196,5 @@ export default class App extends React.Component {
     this.setState({ width: window.innerWidth, height: window.innerHeight });
   }
 }
+
+
