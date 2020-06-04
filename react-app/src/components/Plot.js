@@ -33,14 +33,17 @@ export default class Plot extends React.Component {
           <VerticalGridLines />
           <HorizontalGridLines />
           <MarkSeries
-            animation={'wobble'}
-            key={JSON.stringify(this.props.data)}
+            data={[{x: 0, y: 0}, {x: 9, y: 9}]}
+            size={0}
+          />
+          <MarkSeries
+            animation={'noWobble'}
             data={this.props.data}
             size={pointSize}
           />
           {this.props.centerPoints.map((center, i) => (
             <MarkSeries
-              animation={'wobble'}
+              animation={'noWobble'}
               key={JSON.stringify(center)}
               data={[center]}
               size={centerSize}
@@ -60,9 +63,13 @@ export default class Plot extends React.Component {
           <YAxis />
           <VerticalGridLines />
           <HorizontalGridLines />
+          <MarkSeries
+            data={[{x: 0, y: 0}, {x: 9, y: 9}]}
+            size={0}
+          />
           {this.props.newCenterPoints.map((center, i) => (
             <MarkSeries
-              animation={'wobble'}
+              animation={'noWobble'}
               key={JSON.stringify(center)}
               data={[center]}
               size={centerSize}
@@ -71,7 +78,7 @@ export default class Plot extends React.Component {
           ))}
           {this.props.clusters.map((cluster, i) => (
             <MarkSeries
-              animation={'wobble'}
+              animation={'noWobble'}
               key={JSON.stringify(cluster)}
               data={cluster}
               size={pointSize}

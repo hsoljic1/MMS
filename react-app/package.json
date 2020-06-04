@@ -9,6 +9,7 @@
     "bootstrap": "^4.5.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-notifications": "^1.6.0",
     "react-scripts": "3.4.1",
     "react-vis": "^1.11.7",
     "reactstrap": "^8.4.1"

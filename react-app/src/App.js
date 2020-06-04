@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import '../node_modules/react-vis/dist/style.css';
+import 'react-notifications/lib/notifications.css';
 import Plot from './components/Plot'
 import Menu from './components/Menu'
+import { NotificationContainer, NotificationManager } from 'react-notifications';
 
 export default class App extends React.Component {
 
@@ -9,18 +11,7 @@ export default class App extends React.Component {
     return { 
       width: window.innerWidth, 
       height: window.innerHeight,
-      points: [
-        {x: 0, y: 8},
-        {x: 1, y: 5},
-        {x: 2, y: 4},
-        {x: 3, y: 9},
-        {x: 4, y: 1},
-        {x: 5, y: 7},
-        {x: 6, y: 6},
-        {x: 7, y: 3},
-        {x: 8, y: 2},
-        {x: 9, y: 0}
-      ],
+      points: [],
       centerPoints: [],
       running: false,
       newCenterPoints: [],
@@ -78,7 +69,12 @@ export default class App extends React.Component {
   }
 
   step = () => {
-    
+    if(this.state.centerPoints.length == 0) {
+      NotificationManager.error("Trebate dodati bar jedan centar");
+    }
+    if(this.state.points.length == 0) {
+      NotificationManager.error("Trebate dodati tačke");
+    }
     const points = this.state.points
     const centerPoints = this.state.centerPoints
     if(centerPoints.length == 0) {
@@ -94,7 +90,6 @@ export default class App extends React.Component {
     for(let i = 0; i < centerPoints.length; i++) {
       clusters.push([])
     }
-    console.log("C", clusters)
     for(let i = 0; i < points.length; i++) {
       let myCluster = 0
       for(let c = 0; c < centerPoints.length; c++) {
@@ -128,8 +123,6 @@ export default class App extends React.Component {
     this.setState({
       newCenterPoints: []
     })
-    console.log(newCenterPoints)
-    console.log(clusters)
     this.setState({
       newCenterPoints,
       clusters,
@@ -148,13 +141,35 @@ export default class App extends React.Component {
     this.setState(this.getInitialState());
   }
 
+  generateRandom = numberOfPoints => {
+    const from = 0, to = Math.max(10, 2 * Math.ceil(Math.sqrt(numberOfPoints)))
+    const points = []
+    for(let i = 0; i < numberOfPoints; i++) {
+      const point = {
+        x: Math.floor(from + (to - from) * Math.random()),
+        y: Math.floor(from + (to - from) * Math.random()),
+      }
+      if(points.find(p => p.x == point.x && p.y == point.y)) {
+        i--;
+      }
+      else {
+        points.push(point)
+      }
+    }
+    console.log(points)
+    this.setState({
+      points
+    })
+  }
+
   render() {
     const { height, width } = this.state    
-    const sidebarWidth = 350
+    const sidebarWidth = Math.floor(width / 3)
     const padding = 40
     const p2 = padding / 2
     return (
       <div className="App" style={{ width: "100%", overflow: "hidden" }}>
+        <NotificationContainer/>
         <div>
           <div style={{ width: width - sidebarWidth, float: "left", margin: p2 }}>
             <Plot
@@ -175,7 +190,9 @@ export default class App extends React.Component {
               addCenterPoint={this.addCenterPoint}
               removeCenterPoint={this.removeCenterPoint}
               step={this.step}
+              running={this.state.running}
               reset={this.reset}
+              generateRandom={this.generateRandom}
             />
           </div>
         </div>
