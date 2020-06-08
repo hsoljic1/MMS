@@ -100,7 +100,9 @@ export default class Plot extends React.Component {
           </Form>
         </Card>
         <div className="p-4">
-          <Button size="sm" block color="success" onClick={() => this.props.step()} className=""> Korak </Button>
+          <Button size="sm" block color="success" onClick={() => this.props.step()} className=""> Pokreni </Button>
+          <Button size="sm" block color="success" onClick={() => this.props.iterationStep()} className=""> Iteracija </Button>
+          <Button size="sm" block color="success" onClick={() => this.props.findSolution()} className=""> Rezultat </Button>
           <Button size="sm" block color="warning" onClick={() => this.props.reset()} className="mt-1"> Resetuj </Button>
         </div>
       </div>
