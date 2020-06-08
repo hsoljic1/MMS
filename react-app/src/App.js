@@ -15,7 +15,8 @@ export default class App extends React.Component {
       centerPoints: [],
       running: false,
       newCenterPoints: [],
-      clusters: []
+      clusters: [],
+      pointCluster: [],
     };
   }
 
@@ -24,13 +25,25 @@ export default class App extends React.Component {
     this.state = this.getInitialState()
   }
 
+  sort = (points) => {
+    points.sort((a, b) => {
+      if(a.x < b.x) 
+        return -1
+      else if(a.x == b.x) 
+        return 0
+      else 
+        return 1
+    })
+    return points
+  }
+
   addPoint = (x, y) => {
     let index = this.state.points.indexOf(this.state.points.find(p => p.x == x && p.y == y))
     if(index == -1) {
       let points = this.state.points
       points.push({x, y})
       this.setState({
-        points
+        points: this.sort(points)
       })
     }
   }
@@ -68,7 +81,23 @@ export default class App extends React.Component {
     })
   }
 
+  removeFromClusters(point) {
+    for(let i = 0; i < this.state.clusters.length; i++) {
+      for(let j = 0; j < this.state.clusters[i].length; j++) {
+        if(this.state.clusters[i][j].x == point.x && this.state.clusters[i][j].y == point.y) {
+          this.state.clusters[i].splice(j, 1);
+          this.setState({
+            clusters: this.state.clusters
+          })
+          break
+        }
+      }
+    }
+  }
+
   step = () => {
+    let time = 1
+    const timeInterval = 3000
     if(this.state.centerPoints.length == 0) {
       NotificationManager.error("Trebate dodati bar jedan centar");
     }
@@ -84,7 +113,7 @@ export default class App extends React.Component {
       }
     }
     this.setState({
-      running: true
+      running: true,
     })
     let clusters = []
     for(let i = 0; i < centerPoints.length; i++) {
@@ -99,6 +128,23 @@ export default class App extends React.Component {
         }
       }
       clusters[myCluster].push(points[i])
+      setTimeout(() => {
+          this.state.pointCluster[i] = -1
+          this.setState({
+            pointCluster: this.state.pointCluster
+          })
+        },
+        (time - 1) * timeInterval
+      )
+      setTimeout(() => {
+          this.state.pointCluster[i] = myCluster
+          this.setState({
+            pointCluster: this.state.pointCluster
+          })
+          NotificationManager.info(`Novi klaster za tačku (${points[i].x}, ${points[i].y})`);
+        },
+        (time++) * timeInterval
+      )
     }
     let newCenterPoints = []
     for(let i = 0; i < centerPoints.length; i++) {
@@ -119,15 +165,18 @@ export default class App extends React.Component {
           y: y / clusters[c].length
         }
       }
+      setTimeout(() => {
+          this.setState({
+            newCenterPoints,
+            clusters,
+            centerPoints: newCenterPoints
+          })
+          NotificationManager.info(`Novi klaster`);
+        },
+        (time++) * timeInterval
+      )
     }
-    this.setState({
-      newCenterPoints: []
-    })
-    this.setState({
-      newCenterPoints,
-      clusters,
-      centerPoints: newCenterPoints
-    })
+    
     /*
     return {
       newCenterPoints,
@@ -158,7 +207,7 @@ export default class App extends React.Component {
     }
     console.log(points)
     this.setState({
-      points
+      points: this.sort(points)
     })
   }
 
@@ -181,6 +230,7 @@ export default class App extends React.Component {
               running={this.state.running}
               newCenterPoints={this.state.newCenterPoints}
               clusters={this.state.clusters}
+              pointCluster={this.state.pointCluster}
             />
           </div>
           <div style={{ marginLeft: width - sidebarWidth + padding, height }}>
