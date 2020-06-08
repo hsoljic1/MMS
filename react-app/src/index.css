@@ -19,3 +19,7 @@ code {
   -ms-transform: translateY(-50%);
   transform: translateY(-50%);
 }
+
+.card-body{
+  padding: 8px !important
+}

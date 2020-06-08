@@ -77,17 +77,6 @@ export default class Plot extends React.Component {
               color={this.myPalette[i]}
             />
           ))}
-          {/*
-          {this.props.clusters.map((cluster, i) => (
-            <MarkSeries
-              animation={'noWobble'}
-              key={JSON.stringify(cluster)}
-              data={cluster}
-              size={pointSize}
-              color={this.myPalette[i]}
-            />
-          ))}
-          */}
           {this.props.data.map((point, i) => (
             <MarkSeries
               animation={'noWobble'}

@@ -9,7 +9,9 @@ export default class Plot extends React.Component {
     y: 0,
     xx: 0,
     yy: 0,
-    numberOfPoints: 10
+    numberOfPoints: 10,
+    numberOfCenters: 2,
+
   }
 
   onChange = e => {
@@ -92,18 +94,35 @@ export default class Plot extends React.Component {
                     <Input type="number" name="numberOfPoints" id="numberOfPoints" value={this.state.numberOfPoints} onChange={this.onChange} />
                   </InputGroup>
                 </FormGroup>
+                <FormGroup>
+                  <InputGroup>
+                    <InputGroupAddon addonType="prepend">
+                      <InputGroupText> Broj centara </InputGroupText>
+                    </InputGroupAddon>
+                    <Input type="number" name="numberOfCenters" id="numberOfCenters" value={this.state.numberOfCenters} onChange={this.onChange} />
+                  </InputGroup>
+                </FormGroup>
               </Col>
               <Col sm="6">
-                <Button disabled={running} size="sm" block color="warning" onClick={() => this.props.generateRandom(this.state.numberOfPoints)} className="mt-1"> Generiši </Button>
+                <Button disabled={running} size="sm" block color="info" onClick={() => this.props.generateRandom(this.state.numberOfPoints)} className="mt-1"> Generiši tačke </Button>
+                <Button disabled={running} size="sm" block color="info" onClick={() => this.props.generateRandomCenters(this.state.numberOfCenters)} className="mt-4"> Generiši centre</Button>
               </Col>
             </Row>
           </Form>
         </Card>
         <div className="p-4">
-          <Button size="sm" block color="success" onClick={() => this.props.step()} className=""> Pokreni </Button>
-          <Button size="sm" block color="success" onClick={() => this.props.iterationStep()} className=""> Iteracija </Button>
-          <Button size="sm" block color="success" onClick={() => this.props.findSolution()} className=""> Rezultat </Button>
-          <Button size="sm" block color="warning" onClick={() => this.props.reset()} className="mt-1"> Resetuj </Button>
+          <Row>
+            <Col sm="6">
+              <Button size="sm" block color="primary" onClick={() => this.props.stepByStep()} className=""> Pokreni </Button>
+              <Button size="sm" block color="primary" onClick={() => this.props.step()} className=""> Pokreni iteraciju </Button>
+              <Button size="sm" block color="primary" onClick={() => this.props.iterationStep()} className=""> Sljedeća iteracija </Button>
+            </Col>
+            <Col sm="6">
+              <Button size="sm" block color="primary" onClick={() => this.props.findSolution()} className=""> Finalni rezultat </Button>
+              <Button size="sm" block color="primary" onClick={() => this.props.smallStep()} className=""> Sljedeći korak </Button>
+              <Button size="sm" block color="danger" onClick={() => this.props.reset()} className=""> Resetuj </Button>
+            </Col>
+          </Row>
         </div>
       </div>
     )

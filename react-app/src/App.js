@@ -17,6 +17,7 @@ export default class App extends React.Component {
       newCenterPoints: [],
       clusters: [],
       pointCluster: [],
+      currentPoint: 0,
     };
   }
 
@@ -27,7 +28,7 @@ export default class App extends React.Component {
 
   sort = (points) => {
     points.sort((a, b) => {
-      if (a.x < b.x)
+      if (a.x < b.x || (a.x == b.x && a.y < b.y))
         return -1
       else if (a.x == b.x)
         return 0
@@ -95,9 +96,11 @@ export default class App extends React.Component {
     }
   }
 
+
+
   step = () => {
     let time = 1
-    const timeInterval = 3000
+    const timeInterval = 1000
     if (this.state.centerPoints.length == 0) {
       NotificationManager.error("Trebate dodati bar jedan centar");
     }
@@ -176,15 +179,128 @@ export default class App extends React.Component {
         (time++) * timeInterval
       )
     }
-
-    /*
-    return {
-      newCenterPoints,
-      clusters,
-      centerPoints: newCenterPoints
-    }
-    */
   }
+
+
+  stepByStep = () => {
+    let time = 1
+    const timeInterval = 1000
+    if (this.state.centerPoints.length == 0) {
+      NotificationManager.error("Trebate dodati bar jedan centar");
+    }
+    if (this.state.points.length == 0) {
+      NotificationManager.error("Trebate dodati tačke");
+    }
+    const points = this.state.points
+    const centerPoints = this.state.centerPoints
+    if (centerPoints.length == 0) {
+      return {
+        newCenterPoints: [],
+        clusters: []
+      }
+    }
+    this.setState({
+      running: true,
+    })
+    let clusters = []
+    for (let i = 0; i < centerPoints.length; i++) {
+      clusters.push([])
+    }
+    for (let i = 0; i < points.length; i++) {
+      let myCluster = 0
+      for (let c = 0; c < centerPoints.length; c++) {
+        if (Math.hypot(points[i].x - centerPoints[c].x, points[i].y - centerPoints[c].y) <
+          Math.hypot(points[i].x - centerPoints[myCluster].x, points[i].y - centerPoints[myCluster].y)) {
+          myCluster = c
+        }
+      }
+      clusters[myCluster].push(points[i])
+      setTimeout(() => {
+        this.state.pointCluster[i] = -1
+        this.setState({
+          pointCluster: this.state.pointCluster
+        })
+      },
+        (time - 1) * timeInterval
+      )
+      setTimeout(() => {
+        this.state.pointCluster[i] = myCluster
+        this.setState({
+          pointCluster: this.state.pointCluster
+        })
+        NotificationManager.info(`Novi klaster za tačku (${points[i].x}, ${points[i].y})`);
+      },
+        (time++) * timeInterval
+      )
+    }
+    let newCenterPoints = []
+    for (let i = 0; i < centerPoints.length; i++) {
+      newCenterPoints.push({
+        x: centerPoints[i].x,
+        y: centerPoints[i].y
+      })
+    }
+    for (let c = 0; c < clusters.length; c++) {
+      let x = 0, y = 0
+      for (let i = 0; i < clusters[c].length; i++) {
+        x += clusters[c][i].x
+        y += clusters[c][i].y
+      }
+      if (clusters[c].length > 0) {
+        newCenterPoints[c] = {
+          x: x / clusters[c].length,
+          y: y / clusters[c].length
+        }
+      }
+      
+      if(c != clusters.length - 1) {
+        setTimeout(() => {
+          this.setState({
+            newCenterPoints,
+            clusters,
+            centerPoints: newCenterPoints
+          })
+          NotificationManager.info(`Novi klaster`);
+        },
+          (time++) * timeInterval
+        )
+      }
+      else {
+        let changed = false;
+        for (let i = 0; i < centerPoints.length; i++) {
+          if (centerPoints[i].x != newCenterPoints[i].x || centerPoints[i].y != newCenterPoints[i].y) {
+            changed = true;
+          }
+        }
+        if(changed) {
+          setTimeout(() => {
+            this.stepByStep()
+            this.setState({
+              newCenterPoints,
+              clusters,
+              centerPoints: newCenterPoints
+            })
+            NotificationManager.info(`Novi klaster`);
+          },
+            (time++) * timeInterval
+          )
+        }
+        else {
+          setTimeout(() => {
+            this.setState({
+              newCenterPoints,
+              clusters,
+              centerPoints: newCenterPoints
+            })
+            NotificationManager.info(`Novi klaster`);
+          },
+            (time++) * timeInterval
+          )
+        }
+      }
+    }
+  }
+
 
 
   iterationStep = () => {
@@ -218,7 +334,6 @@ export default class App extends React.Component {
         }
       }
       clusters[myCluster].push(points[i])
-
       this.state.pointCluster[i] = myCluster
       this.setState({
         pointCluster: this.state.pointCluster
@@ -256,7 +371,6 @@ export default class App extends React.Component {
   }
 
   findSolution = () => {
-
     if (this.state.centerPoints.length == 0) {
       NotificationManager.error("Trebate dodati bar jedan centar");
       return;
@@ -335,7 +449,81 @@ export default class App extends React.Component {
       }
 
     }
+  }
 
+  smallStep = () => {
+    this.setState({
+      running: true
+    })
+    const points = this.state.points
+    const centerPoints = this.state.centerPoints
+    if (centerPoints.length == 0) {
+      return {
+        newCenterPoints: [],
+        clusters: []
+      }
+    }
+    let clusters = []
+    for (let i = 0; i < centerPoints.length; i++) {
+      clusters.push([])
+    }
+    let i = this.state.currentPoint
+    let myCluster = 0
+    for (let c = 0; c < centerPoints.length; c++) {
+      if (Math.hypot(points[i].x - centerPoints[c].x, points[i].y - centerPoints[c].y) <
+        Math.hypot(points[i].x - centerPoints[myCluster].x, points[i].y - centerPoints[myCluster].y)) {
+        myCluster = c
+      }
+    }
+    clusters[myCluster].push(points[i])
+    this.state.pointCluster[i] = -1
+    this.setState({
+      pointCluster: this.state.pointCluster
+    })
+    setTimeout(() => {
+    this.state.pointCluster[i] = myCluster
+      this.setState({
+        pointCluster: this.state.pointCluster
+      })
+    },
+    1000)
+    console.log(":(")
+    if(this.state.currentPoint == this.state.points.length - 1) {
+      console.log("OKKKK")
+      this.setState({
+        currentPoint: 0
+      })
+      let newCenterPoints = []
+      for (let i = 0; i < centerPoints.length; i++) {
+        newCenterPoints.push({
+          x: centerPoints[i].x,
+          y: centerPoints[i].y
+        })
+      }
+      for (let c = 0; c < clusters.length; c++) {
+        let x = 0, y = 0
+        for (let i = 0; i < clusters[c].length; i++) {
+          x += clusters[c][i].x
+          y += clusters[c][i].y
+        }
+        if (clusters[c].length > 0) {
+          newCenterPoints[c] = {
+            x: x / clusters[c].length,
+            y: y / clusters[c].length
+          }
+        }
+        this.setState({
+          newCenterPoints,
+          clusters,
+          centerPoints: newCenterPoints
+        })
+      }
+    }
+    else {
+      this.setState({
+        currentPoint: this.state.currentPoint + 1
+      })
+    }
   }
 
   generateRandom = numberOfPoints => {
@@ -356,6 +544,26 @@ export default class App extends React.Component {
     console.log(points)
     this.setState({
       points: this.sort(points)
+    })
+  }
+
+  generateRandomCenters = numberOfPoints => {
+    const from = 0, to = Math.max(10, 2 * Math.ceil(Math.sqrt(numberOfPoints)))
+    const points = []
+    for (let i = 0; i < numberOfPoints; i++) {
+      const point = {
+        x: Math.floor(from + (to - from) * Math.random()),
+        y: Math.floor(from + (to - from) * Math.random()),
+      }
+      if (points.find(p => p.x == point.x && p.y == point.y)) {
+        i--;
+      }
+      else {
+        points.push(point)
+      }
+    }
+    this.setState({
+      centerPoints: this.sort(points)
     })
   }
 
@@ -388,11 +596,14 @@ export default class App extends React.Component {
               addCenterPoint={this.addCenterPoint}
               removeCenterPoint={this.removeCenterPoint}
               step={this.step}
+              stepByStep={this.stepByStep}
               iterationStep={this.iterationStep}
               findSolution={this.findSolution}
               running={this.state.running}
               reset={this.reset}
               generateRandom={this.generateRandom}
+              generateRandomCenters={this.generateRandomCenters}
+              smallStep={this.smallStep}
             />
           </div>
         </div>
