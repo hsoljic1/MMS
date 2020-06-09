@@ -104,8 +104,8 @@ export default class Plot extends React.Component {
                 </FormGroup>
               </Col>
               <Col sm="6">
-                <Button disabled={running} size="sm" block color="info" onClick={() => this.props.generateRandom(this.state.numberOfPoints)} className="mt-1"> Generiši tačke </Button>
-                <Button disabled={running} size="sm" block color="info" onClick={() => this.props.generateRandomCenters(this.state.numberOfCenters)} className="mt-4"> Generiši centre</Button>
+                <Button disabled={running} size="sm" block color="info" onClick={() => this.props.generateRandom(this.state.numberOfPoints)} className=""> Generiši tačke </Button>
+                <Button disabled={running} size="sm" block color="info" onClick={() => this.props.generateRandomCenters(this.state.numberOfCenters)} className="mt-3"> Generiši centre</Button>
               </Col>
             </Row>
           </Form>
