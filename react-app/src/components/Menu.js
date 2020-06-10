@@ -106,7 +106,7 @@ export default class Plot extends React.Component {
                 <FormGroup>
                   <InputGroup>
                     <InputGroupAddon addonType="prepend">
-                      <InputGroupText> Points </InputGroupText>
+                      <InputGroupText> Points <span style={{ width: "3ch" }}></span> </InputGroupText>
                     </InputGroupAddon>
                     <Input type="number" name="numberOfPoints" id="numberOfPoints" min="0" max="1000" value={this.state.numberOfPoints} onChange={this.onChange} />
                   </InputGroup>
