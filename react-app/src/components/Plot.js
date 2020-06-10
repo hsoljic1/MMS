@@ -36,12 +36,15 @@ export default class Plot extends React.Component {
             data={[{x: 0, y: 0}, {x: 9, y: 9}]}
             size={0}
           />
-          <MarkSeries
-            animation={'noWobble'}
-            data={this.props.data}
-            size={pointSize}
-            color={0}
-          />
+          {this.props.data.map((point, i) => (
+            <MarkSeries
+              animation={'noWobble'}
+              key={JSON.stringify(point)}
+              data={[point]}
+              size={this.props.pointCluster[i] == -1 ? 10 : pointSize}
+              color={this.myPalette[this.props.pointCluster[i]] || 0}
+            />
+          ))}
           {this.props.centerPoints.map((center, i) => (
             <MarkSeries
               animation={'noWobble'}

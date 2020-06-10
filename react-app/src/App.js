@@ -38,11 +38,29 @@ export default class App extends React.Component {
     return points
   }
 
+  euclidDistance = (point1, point2) => {
+    return Math.hypot(point1.x - point2.x, point1.y - point2.y)
+  }
+
+  manhattanDistance = (point1, point2) => {
+    return Math.abs(point1.x - point2.x) + Math.abs(point1.y - point2.y)
+  }
+
+  distance = (point1, point2, metrics) => {
+    if(metrics == "Euclid"){
+      return this.euclidDistance(point1, point2)
+    }
+    else {
+      return this.manhattanDistance(point1, point2)
+    }
+  }
+
+
   addPoint = (x, y) => {
     let index = this.state.points.indexOf(this.state.points.find(p => p.x == x && p.y == y))
     if (index == -1) {
       let points = this.state.points
-      points.push({ x, y })
+      points.push({ x, y})
       this.setState({
         points: this.sort(points)
       })
@@ -96,11 +114,30 @@ export default class App extends React.Component {
     }
   }
 
+  hasChanged = (centerPoints, newCenterPoints) => {
+    for (let i = 0; i < centerPoints.length; i++) {
+      if (centerPoints[i].x != newCenterPoints[i].x || centerPoints[i].y != newCenterPoints[i].y) {
+        return true
+      }
+    }
+    return false
+  }
+
+  end = () => {
+    NotificationManager.info(`
+      Execution of K-means algorithm on this dataset is done.
+      You can see the final result.
+      Press button 'Reset' to add new points.
+    `, `End`, 20000)
+    this.setState({
+      running: false
+    })
+  }
 
 
-  step = () => {
+  step = (metrics, speed) => {
     let time = 1
-    const timeInterval = 1000
+    const timeInterval = speed
     if (this.state.centerPoints.length == 0) {
       NotificationManager.error("Trebate dodati bar jedan centar");
     }
@@ -125,8 +162,7 @@ export default class App extends React.Component {
     for (let i = 0; i < points.length; i++) {
       let myCluster = 0
       for (let c = 0; c < centerPoints.length; c++) {
-        if (Math.hypot(points[i].x - centerPoints[c].x, points[i].y - centerPoints[c].y) <
-          Math.hypot(points[i].x - centerPoints[myCluster].x, points[i].y - centerPoints[myCluster].y)) {
+        if (this.distance(points[i], centerPoints[c], metrics) < this.distance(points[i], centerPoints[myCluster], metrics)){
           myCluster = c
         }
       }
@@ -144,7 +180,7 @@ export default class App extends React.Component {
         this.setState({
           pointCluster: this.state.pointCluster
         })
-        NotificationManager.info(`Novi klaster za tačku (${points[i].x}, ${points[i].y})`);
+        //NotificationManager.info(`Novi klaster za tačku (${points[i].x}, ${points[i].y})`);
       },
         (time++) * timeInterval
       )
@@ -168,23 +204,32 @@ export default class App extends React.Component {
           y: y / clusters[c].length
         }
       }
-      setTimeout(() => {
-        this.setState({
-          newCenterPoints,
-          clusters,
-          centerPoints: newCenterPoints
-        })
-        NotificationManager.info(`Novi klaster`);
-      },
-        (time++) * timeInterval
-      )
+      if(this.hasChanged(centerPoints, newCenterPoints)) {
+        setTimeout(() => {
+          this.setState({
+            newCenterPoints,
+            clusters,
+            centerPoints: newCenterPoints
+          })
+          //NotificationManager.info(`Novi klaster`);
+        },
+          (time++) * timeInterval
+        )
+      }
+      else if(c == this.state.clusters.length - 1) {
+        setTimeout(() => {
+          this.end()
+        },
+          (time++) * timeInterval
+        )
+      }
     }
   }
 
 
-  stepByStep = () => {
+  stepByStep = (metrics, speed) => {
     let time = 1
-    const timeInterval = 1000
+    const timeInterval = speed
     if (this.state.centerPoints.length == 0) {
       NotificationManager.error("Trebate dodati bar jedan centar");
     }
@@ -209,8 +254,7 @@ export default class App extends React.Component {
     for (let i = 0; i < points.length; i++) {
       let myCluster = 0
       for (let c = 0; c < centerPoints.length; c++) {
-        if (Math.hypot(points[i].x - centerPoints[c].x, points[i].y - centerPoints[c].y) <
-          Math.hypot(points[i].x - centerPoints[myCluster].x, points[i].y - centerPoints[myCluster].y)) {
+        if (this.distance(points[i], centerPoints[c], metrics) < this.distance(points[i], centerPoints[myCluster], metrics)){
           myCluster = c
         }
       }
@@ -228,7 +272,7 @@ export default class App extends React.Component {
         this.setState({
           pointCluster: this.state.pointCluster
         })
-        NotificationManager.info(`Novi klaster za tačku (${points[i].x}, ${points[i].y})`);
+        //NotificationManager.info(`Novi klaster za tačku (${points[i].x}, ${points[i].y})`);
       },
         (time++) * timeInterval
       )
@@ -260,7 +304,7 @@ export default class App extends React.Component {
             clusters,
             centerPoints: newCenterPoints
           })
-          NotificationManager.info(`Novi klaster`);
+          //NotificationManager.info(`Novi klaster`);
         },
           (time++) * timeInterval
         )
@@ -274,13 +318,13 @@ export default class App extends React.Component {
         }
         if(changed) {
           setTimeout(() => {
-            this.stepByStep()
+            this.stepByStep(metrics, speed)
             this.setState({
               newCenterPoints,
               clusters,
               centerPoints: newCenterPoints
             })
-            NotificationManager.info(`Novi klaster`);
+            //NotificationManager.info(`Novi klaster`);
           },
             (time++) * timeInterval
           )
@@ -290,9 +334,10 @@ export default class App extends React.Component {
             this.setState({
               newCenterPoints,
               clusters,
-              centerPoints: newCenterPoints
+              centerPoints: newCenterPoints,
             })
-            NotificationManager.info(`Novi klaster`);
+            this.end()
+            //NotificationManager.info(`Novi klaster`);
           },
             (time++) * timeInterval
           )
@@ -303,7 +348,7 @@ export default class App extends React.Component {
 
 
 
-  iterationStep = () => {
+  iterationStep = (metrics) => {
     if (this.state.centerPoints.length == 0) {
       NotificationManager.error("Trebate dodati bar jedan centar");
     }
@@ -328,8 +373,7 @@ export default class App extends React.Component {
     for (let i = 0; i < points.length; i++) {
       let myCluster = 0
       for (let c = 0; c < centerPoints.length; c++) {
-        if (Math.hypot(points[i].x - centerPoints[c].x, points[i].y - centerPoints[c].y) <
-          Math.hypot(points[i].x - centerPoints[myCluster].x, points[i].y - centerPoints[myCluster].y)) {
+        if (this.distance(points[i], centerPoints[c], metrics) < this.distance(points[i], centerPoints[myCluster], metrics)){
           myCluster = c
         }
       }
@@ -358,6 +402,9 @@ export default class App extends React.Component {
           y: y / clusters[c].length
         }
       }
+      if(c == clusters.length - 1 && !this.hasChanged(centerPoints, newCenterPoints)) {
+        this.end()
+      }
       this.setState({
         newCenterPoints,
         clusters,
@@ -370,7 +417,7 @@ export default class App extends React.Component {
     this.setState(this.getInitialState());
   }
 
-  findSolution = () => {
+  findSolution = (metrics) => {
     if (this.state.centerPoints.length == 0) {
       NotificationManager.error("Trebate dodati bar jedan centar");
       return;
@@ -400,8 +447,7 @@ export default class App extends React.Component {
       for (let i = 0; i < points.length; i++) {
         let myCluster = 0
         for (let c = 0; c < centerPoints.length; c++) {
-          if (Math.hypot(points[i].x - centerPoints[c].x, points[i].y - centerPoints[c].y) <
-            Math.hypot(points[i].x - centerPoints[myCluster].x, points[i].y - centerPoints[myCluster].y)) {
+          if (this.distance(points[i], centerPoints[c], metrics) < this.distance(points[i], centerPoints[myCluster], metrics)){
             myCluster = c
           }
         }
@@ -449,9 +495,10 @@ export default class App extends React.Component {
       }
 
     }
+    this.end()
   }
 
-  smallStep = () => {
+  smallStep = (metrics) => {
     this.setState({
       running: true
     })
@@ -470,8 +517,7 @@ export default class App extends React.Component {
     let i = this.state.currentPoint
     let myCluster = 0
     for (let c = 0; c < centerPoints.length; c++) {
-      if (Math.hypot(points[i].x - centerPoints[c].x, points[i].y - centerPoints[c].y) <
-        Math.hypot(points[i].x - centerPoints[myCluster].x, points[i].y - centerPoints[myCluster].y)) {
+      if (this.distance(points[i], centerPoints[c], metrics) < this.distance(points[i], centerPoints[myCluster], metrics)){
         myCluster = c
       }
     }
@@ -512,6 +558,12 @@ export default class App extends React.Component {
             y: y / clusters[c].length
           }
         }
+      }
+      console.log(centerPoints, newCenterPoints)
+      if(!this.hasChanged(centerPoints, newCenterPoints)) {
+        this.end()
+      } 
+      else {
         this.setState({
           newCenterPoints,
           clusters,
@@ -527,6 +579,10 @@ export default class App extends React.Component {
   }
 
   generateRandom = numberOfPoints => {
+    if(numberOfPoints > 1000) {
+      NotificationManager.error(`Broj tačaka treba biti manji od ${1000}`);
+      return
+    }
     const from = 0, to = Math.max(10, 2 * Math.ceil(Math.sqrt(numberOfPoints)))
     const points = []
     for (let i = 0; i < numberOfPoints; i++) {
@@ -548,6 +604,10 @@ export default class App extends React.Component {
   }
 
   generateRandomCenters = numberOfPoints => {
+    if(numberOfPoints > 8) {
+      NotificationManager.error("Broj centara treba biti manji od 8");
+      return
+    }
     const from = 0, to = Math.max(10, 2 * Math.ceil(Math.sqrt(numberOfPoints)))
     const points = []
     for (let i = 0; i < numberOfPoints; i++) {
