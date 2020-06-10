@@ -635,6 +635,14 @@ export default class App extends React.Component {
     return (
       <div className="App" style={{ width: "100%", overflow: "hidden" }}>
         <NotificationContainer />
+        <div style={{
+          position: "fixed",
+          bottom: "5px",
+          right: "3px",
+          fontSize: "11px"
+        }}>
+          &#169; MMSMSS
+        </div>
         <div>
           <div style={{ width: width - sidebarWidth, float: "left", margin: p2 }}>
             <Plot
