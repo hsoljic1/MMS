@@ -20,11 +20,12 @@ code {
   transform: translateY(-50%);
 }
 
-.card-body{
-  padding: 7px !important
+.card-body {
+  padding: 7px !important;
 }
 
-.form-control, .input-group-text {
+.form-control,
+.input-group-text {
   height: calc(1.5em + 0.5rem) !important;
   padding-top: 0.25rem !important;
   padding-right: 0.75rem !important;
